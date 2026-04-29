@@ -1,39 +1,63 @@
-{:deps {io.github.amiorin/once {:git/sha "e5bfad5a607c718ae9e9a2be8942aae7542d6aa3"
+{:deps {io.github.amiorin/once {:git/sha "b6123903a70cf072ffcf65e1ca5a033c344a6abf"
                                 #_#_:local/root "../once/main"}}
  :tasks
- {:requires ([io.github.amiorin.once.package :as package])
-  ai {:doc "bb once create | bb once delete"
-      :task (package/once*
-             *command-line-args*
-             {:big-config.render/profile "ai"
-              :big-config.workflow/params
-              {:provider-smtp    "resend"
-               :resend-server    "smtp.resend.com"
-               :resend-port      587
-               :resend-username  "resend"
+ {:requires ([io.github.amiorin.once.package :as package]
+             [io.github.amiorin.once.params :as params]
+             [io.github.amiorin.once.tools :as tools])
+  :init (def opts
+          {:big-config.render/profile "ai"
+           :big-config.workflow/params
+           {:provider-smtp    "resend"
+            :resend-server    "smtp.resend.com"
+            :resend-port      587
+            :resend-username  "resend"
 
-               :provider-dns     "cloudflare"
+            :provider-dns     "cloudflare"
 
-               :provider-backend "s3"
-               :s3-bucket        "tf-state-251213589273-eu-west-1"
-               :s3-region        "eu-west-1"
+            :provider-backend "s3"
+            :s3-bucket        "tf-state-251213589273-eu-west-1"
+            :s3-region        "eu-west-1"
 
-               :provider-compute            "oci"
-               :oci-config-file-profile     "DEFAULT"
-               :oci-subnet-id               "ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaaotya32pihejgi25vrdfnjda3qg52kpsjnd7od5oiqifbsi4rqqma"
-               :oci-compartment-id          "ocid1.tenancy.oc1..aaaaaaaal4wmmpzv2fzkdz2vrfdizywgzjid6dqlgcankrrr7jyydo7ozb3a"
-               :oci-availability-domain     "xTQn:EU-FRANKFURT-1-AD-1"
-               :oci-display-name            "my-ampere-instance"
-               :oci-shape                   "VM.Standard.A1.Flex"
-               :oci-ocpus                   1
-               :oci-memory-in-gbs           6
-               :oci-boot-volume-size-in-gbs 50
-               :oci-boot-volume-vpus-per-gb 30
-               :oci-ssh-authorized-keys     "~/.ssh/id_ed25519.pub"
+            :provider-compute            "oci"
+            :oci-config-file-profile     "DEFAULT"
+            :oci-subnet-id               "ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaaotya32pihejgi25vrdfnjda3qg52kpsjnd7od5oiqifbsi4rqqma"
+            :oci-compartment-id          "ocid1.tenancy.oc1..aaaaaaaal4wmmpzv2fzkdz2vrfdizywgzjid6dqlgcankrrr7jyydo7ozb3a"
+            :oci-availability-domain     "xTQn:EU-FRANKFURT-1-AD-1"
+            :oci-display-name            "my-ampere-instance"
+            :oci-shape                   "VM.Standard.A1.Flex"
+            :oci-ocpus                   1
+            :oci-memory-in-gbs           6
+            :oci-boot-volume-size-in-gbs 50
+            :oci-boot-volume-vpus-per-gb 30
+            :oci-ssh-authorized-keys     "~/.ssh/id_ed25519.pub"
 
-               :domain  "bigconfig.ai"
-               :package "ai"
-               :once    {:applications [{:host  "www.bigconfig.ai"
-                                         :image "ghcr.io/amiorin/once-bigconfig"}
-                                        {:host  "bigconfig.ai"
-                                         :image "ghcr.io/amiorin/once-caddy-redirect"}]}}})}}}
+            :domain  "bigconfig.ai"
+            :package "ai"
+            :once    {:applications [{:host  "www.bigconfig.ai"
+                                      :image "ghcr.io/amiorin/once-bigconfig"}
+                                     {:host  "bigconfig.ai"
+                                      :image "ghcr.io/amiorin/once-caddy-redirect"}]}}})
+  help {:doc "the workflow help"
+        :override-builtin true
+        :task (println "Usage: bb <step|cmd>+ -- [raw-command]
+
+See:
+* https://bigconfig.it/paramss/intro/
+* https://bigconfig.it/api/workflow/")}
+  tidy {:doc "tidy clojure files"
+        :task (do (shell "clojure-lsp clean-ns")
+                  (shell "clojure-lsp format"))}
+  ai {:doc "bb ai create | bb ai delete"
+      :task (package/once* *command-line-args* opts)}
+  tofu {:doc "bb tofu render tofu:init lock tofu:apply:-auto-approve"
+        :task (tools/tofu* *command-line-args* (params/once-opts opts))}
+  tofu-dns {:doc "bb tofu-dns render tofu:init lock tofu:apply:-auto-approve"
+            :task (tools/tofu-dns* *command-line-args* (params/once-opts opts))}
+  tofu-smtp {:doc "bb tofu-smtp render tofu:init lock tofu:apply:-auto-approve"
+             :task (tools/tofu-smtp* *command-line-args* (params/once-opts opts))}
+  tofu-smtp-post {:doc "bb tofu-smtp-post render tofu:init lock tofu:apply:-auto-approve"
+                  :task (tools/tofu-smtp-post* *command-line-args* (params/once-opts opts))}
+  ansible {:doc "bb ansible render -- ansible-playbook main.yml"
+           :task (tools/ansible* *command-line-args* (params/once-opts opts))}
+  ansible-local {:doc "bb ansible render -- ansible-playbook main.yml"
+                 :task (tools/ansible-local* *command-line-args* (params/once-opts opts))}}}
