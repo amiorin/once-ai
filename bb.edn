@@ -1,4 +1,4 @@
-{:deps {io.github.amiorin/once {:git/sha "b6123903a70cf072ffcf65e1ca5a033c344a6abf"
+{:deps {io.github.amiorin/once {:git/sha "e6b407262da206f2ccc4b5e1d825be7237a14f2e"
                                 #_#_:local/root "../once/main"}}
  :tasks
  {:requires ([io.github.amiorin.once.package :as package]
@@ -23,7 +23,7 @@
             :oci-subnet-id               "ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaaotya32pihejgi25vrdfnjda3qg52kpsjnd7od5oiqifbsi4rqqma"
             :oci-compartment-id          "ocid1.tenancy.oc1..aaaaaaaal4wmmpzv2fzkdz2vrfdizywgzjid6dqlgcankrrr7jyydo7ozb3a"
             :oci-availability-domain     "xTQn:EU-FRANKFURT-1-AD-1"
-            :oci-display-name            "my-ampere-instance"
+            :oci-display-name            "once-ai"
             :oci-shape                   "VM.Standard.A1.Flex"
             :oci-ocpus                   1
             :oci-memory-in-gbs           6
